@@ -1,4 +1,4 @@
-export const copyToClipboard = (text) => {
+export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text).then(
     () => {
       // Do nothing

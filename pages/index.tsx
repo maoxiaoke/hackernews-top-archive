@@ -52,11 +52,11 @@ export interface Hit {
   _highlightResult?: any;
 }
 
-let datePickerInstance = null;
+let datePickerInstance: any = null;
 const currentDate = new Date();
 const last24CachedTime = 60 * 10;
 
-const fetcher = (url) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const isContainTag = (hit: Hit, tag: HitTag) => {
   return (hit?._tags ?? []).includes(tag);
@@ -211,7 +211,7 @@ const HackNewsTopArchive = ({
     format(selectedDate, "{yyyy}"),
   ].filter(Boolean);
 
-  const selectDate = (evt) => {
+  const selectDate = (evt: any) => {
     evt.stopPropagation();
     if (datePickerInstance) {
       return;
@@ -402,8 +402,8 @@ const HackNewsTopArchive = ({
               <div className="flex items-center justify-end">
                 <Tabs
                   value={viewType}
-                  onValueChange={(type: ViewType) => {
-                    setViewType(type);
+                  onValueChange={(type: string) => {
+                    setViewType(type as ViewType);
                     setSelectedDate(currentDate);
                     history.replaceState(null, "", pathname);
                   }}
@@ -449,7 +449,7 @@ const HackNewsTopArchive = ({
             </header>
 
             <ul className="mt-6">
-              {(allHits ?? []).map((hit, idx) => (
+              {(allHits ?? []).map((hit: any, idx: number) => (
                 <li
                   id={hit.story_id}
                   key={hit.story_id ?? hit.objectID ?? idx}
