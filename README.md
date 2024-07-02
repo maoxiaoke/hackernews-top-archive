@@ -1,7 +1,6 @@
 # Hacker News Top Archive
 
-
-<video source="./top-archived-preview.mp4" type="video/mp4"></video>
+![](./top-archived-preview.avif)
 
 Hacker News Top Archive allows you to easily find the top news on Hacker News by year, month, and day, sorted by points. It also supports querying the most popular posts from the last 24 hours in real-time.
 
