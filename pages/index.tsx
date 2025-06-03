@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { kv } from "@vercel/kv";
 import { format, localeFormat } from "light-date";
-import { ChevronLeftCircle, ChevronRightCircle } from "lucide-react";
+import { ChevronLeftCircle, ChevronRightCircle, History } from "lucide-react";
 import type { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import Image from "next/image";
@@ -12,6 +12,10 @@ import type { Session } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import { useMemo, useRef, useState } from "react";
 import useSWRInfinite from "swr/infinite";
+import { DatePicker } from "@/components/date-picker";
+import { Toaster } from "@/components/ui/sonner";
+
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +28,8 @@ import {
   getStartDateTimeByUnit,
   getTimeWalkingDateByUnit,
 } from "@/utils/date";
+
+import { toast } from "sonner";
 
 import { authOptions } from "./api/auth/[...nextauth]";
 
@@ -211,38 +217,6 @@ const HackNewsTopArchive = ({
     format(selectedDate, "{yyyy}"),
   ].filter(Boolean);
 
-  const selectDate = (evt: any) => {
-    evt.stopPropagation();
-    if (datePickerInstance) {
-      return;
-    }
-
-    // @ts-ignore
-    import("flowbite-datepicker/Datepicker").then(({ default: Datepicker }) => {
-      if (datepickerEl.current) {
-        const pickLevel = isDay ? 0 : viewType === "month" ? 1 : 2;
-        datePickerInstance = new Datepicker(datepickerEl.current, {
-          pickLevel: pickLevel,
-          minDate: new Date("2006-01-01"),
-          maxDate: currentDate,
-        });
-
-        // @ts-ignore
-        datePickerInstance.setDate(selectedDate.getTime());
-
-        if (datepickerEl.current) {
-          datepickerEl.current.addEventListener("changeDate", (e: any) => {
-            const value = e.detail.date;
-            setSelectedDate(value);
-            if (isDay) {
-              setViewType("day");
-            }
-          });
-        }
-      }
-    });
-  };
-
   const shareCurrentPage = async () => {
     let sharedUrl = "https://www.nazha.co/hackernews-top-archive";
     if (viewType === "last24") {
@@ -251,9 +225,9 @@ const HackNewsTopArchive = ({
 
     try {
       await copyToClipboard(sharedUrl);
-    } catch {
-      //
-    }
+
+      toast.success("Copied to clipboard");
+    } catch {}
   };
 
   const allHits =
@@ -291,7 +265,6 @@ const HackNewsTopArchive = ({
   return (
     <>
       <Head>
-        <link href="/styles/flowbite.css" rel="stylesheet" />
         <link rel="icon" href="/images/hacker-news.png" sizes="any" />
       </Head>
       <div
@@ -342,12 +315,14 @@ const HackNewsTopArchive = ({
                   <AvatarFallback>{userSession.user?.name}</AvatarFallback>
                 </Avatar>
               ) : (
-                <Link
-                  href="/api/auth/signin"
-                  className="text-sm text-blue-600 dark:text-blue-500 hover:underline"
-                >
-                  Login
-                </Link>
+                <div className="text-sm text-blue-600 dark:text-blue-500 hover:underline">
+                  <SignedOut>
+                    <SignInButton />
+                  </SignedOut>
+                  <SignedIn>
+                    <UserButton />
+                  </SignedIn>
+                </div>
               )}
             </div>
           </div>
@@ -377,7 +352,8 @@ const HackNewsTopArchive = ({
                         className={cn(
                           "inline-block mr-2 text-gray-700 font-catamaran",
                           index === 0 && "text-3xl text-gray-600",
-                          index === 1 && "text-2xl text-gray-400"
+                          index === 1 && "text-2xl text-gray-400",
+                          index === 2 && "text-3xl text-gray-600"
                         )}
                       >
                         {time}
@@ -386,7 +362,7 @@ const HackNewsTopArchive = ({
                   })}
                 </ul>
               ) : (
-                <span className="font-catamaran text-2xl text-gray-700 flex items-center text-hacker">
+                <span className="font-catamaran text-2xl flex items-center text-hacker">
                   {new Date(
                     Number(query.startTimeStamp + "000")
                   ).toLocaleDateString()}{" "}
@@ -418,23 +394,12 @@ const HackNewsTopArchive = ({
                 </Tabs>
 
                 <div className="relative ml-4">
-                  <svg
-                    viewBox="0 0 1024 1024"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    p-id="1721"
-                    id="mx_n_1697696158839"
-                    width="24"
-                    className="cursor-pointer"
-                    onClick={selectDate}
-                    height="24"
-                  >
-                    <path
-                      d="M831.99168 255.97696h-64.0096C767.98208 114.615174 653.366906 0 511.99488 0S255.97696 114.615174 255.97696 255.97696H191.99808C85.96394 255.97696 0 341.97162 0 447.98528V511.99488c0 106.01366 85.96394 191.99808 191.99808 191.99808h27.186928L90.111099 927.601604c-9.277347 16.04592-7.495605 34.457255 4.01404 41.102949l13.854581 7.98712c11.489165 6.635454 28.282597-1.054709 37.570185-17.100629L293.096589 703.99296h186.888371v286.399696c0 18.564934 10.772372 33.597104 24.00232 33.597104h16.00496c13.219708 0 24.00232-15.03217 24.00232-33.597104V703.99296h185.946301l148.478515 257.246708c9.277347 16.04592 26.121979 23.695123 37.590664 17.100629l13.875061-8.0076c11.468685-6.614974 13.250427-25.02631 3.97308-41.123429l-130.046699-225.216308h28.180198C938.02582 703.99296 1023.98976 618.00854 1023.98976 511.99488v-64.0096c0-106.01366-85.96394-192.00832-191.99808-192.00832z m-79.99408 160.01888a48.02512 48.02512 0 0 1 48.00464 48.00464 48.00464 48.00464 0 1 1-48.00464-48.00464zM303.9816 511.99488a48.02512 48.02512 0 0 1-48.00464-48.00464A48.00464 48.00464 0 1 1 303.9816 511.99488z m16.0152-256.01792c0-106.00342 85.97418-191.99808 191.99808-191.99808 106.01366 0 191.99808 85.99466 191.99808 191.99808h-383.99616zM527.9896 511.99488a48.01488 48.01488 0 1 1 0.02048-96.02976A48.01488 48.01488 0 0 1 527.9896 511.99488z"
-                      p-id="1722"
-                      fill="#FF6600"
-                    ></path>
-                  </svg>
+                  <DatePicker
+                    onChange={(date: Date) => {
+                      setSelectedDate(date);
+                      setViewType("day");
+                    }}
+                  />
 
                   <div
                     ref={datepickerEl}
@@ -448,7 +413,7 @@ const HackNewsTopArchive = ({
               </div>
             </header>
 
-            <ul className="mt-6">
+            <ul className="mt-6 px-3 lg:px-0">
               {(allHits ?? []).map((hit: any, idx: number) => (
                 <li
                   id={hit.story_id}

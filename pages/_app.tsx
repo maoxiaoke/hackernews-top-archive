@@ -1,4 +1,6 @@
 import type { AppProps } from "next/app";
+import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "@/components/ui/sonner";
 
 import "@/public/styles/font.css";
 import "@/public/styles/global.css";
@@ -34,13 +36,15 @@ const sourceSerif4 = Source_Serif_4({
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <>
+    <ClerkProvider>
       <div
         className={`${gothamsm.variable} ${catamaran.variable} ${montserrat.variable} ${overpass.variable} ${sourceSerif4.variable} w-full h-full`}
       >
         <Component {...pageProps} />
+
+        <Toaster />
       </div>
       <Analytics />
-    </>
+    </ClerkProvider>
   );
 }
